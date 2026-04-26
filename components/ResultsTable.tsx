@@ -1,13 +1,16 @@
 'use client'
 
+import Tooltip from './Tooltip'
+
 interface Props {
   columns: string[]
+  columnDescriptions: Record<string, string>
   rows: Record<string, string>[]
   isStreaming: boolean
   streamText: string
 }
 
-export default function ResultsTable({ columns, rows, isStreaming, streamText }: Props) {
+export default function ResultsTable({ columns, columnDescriptions, rows, isStreaming, streamText }: Props) {
   if (isStreaming && rows.length === 0) {
     return (
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -48,7 +51,16 @@ export default function ResultsTable({ columns, rows, isStreaming, streamText }:
                   key={col}
                   className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap"
                 >
-                  {col}
+                  <div className="flex items-center gap-1">
+                    <span>{col}</span>
+                    {columnDescriptions[col] && (
+                      <Tooltip content={columnDescriptions[col]} position="bottom">
+                        <span className="w-3.5 h-3.5 rounded-full bg-gray-300 text-gray-500 text-[9px] flex items-center justify-center cursor-default select-none hover:bg-indigo-200 hover:text-indigo-700 transition flex-shrink-0">
+                          ?
+                        </span>
+                      </Tooltip>
+                    )}
+                  </div>
                 </th>
               ))}
             </tr>

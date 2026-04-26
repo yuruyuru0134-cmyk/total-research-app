@@ -3,6 +3,14 @@
 import { useState } from 'react'
 import { PATTERN_LIST, PatternId } from '@/lib/research-patterns'
 import { EXPORT_FORMATS, ExportFormat } from '@/lib/export-utils'
+import Tooltip from './Tooltip'
+
+const FORMAT_DESCRIPTIONS: Record<ExportFormat, string> = {
+  table: 'ブラウザ上でそのまま確認。結果表示後にCSV・Excel・JSONへの追加エクスポートも可能',
+  csv: 'ExcelやGoogleスプレッドシートで開けるCSV形式。文字化け防止のBOM付き',
+  excel: 'Microsoft Excel形式（.xlsx）。列幅自動調整・ヘッダー装飾済みで書き出し',
+  json: 'プログラムやシステム連携に適したJSON形式でダウンロード',
+}
 
 interface Props {
   onSubmit: (keyword: string, patternId: PatternId, exportFormat: ExportFormat) => void
@@ -41,9 +49,16 @@ export default function ResearchForm({ onSubmit, isLoading }: Props) {
 
       {/* パターン選択 */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-          リサーチパターン
-        </label>
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <label className="text-sm font-semibold text-gray-700">リサーチパターン</label>
+          {selectedPattern && (
+            <Tooltip content={selectedPattern.description}>
+              <span className="w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-[10px] flex items-center justify-center cursor-default select-none hover:bg-indigo-100 hover:text-indigo-600 transition">
+                ?
+              </span>
+            </Tooltip>
+          )}
+        </div>
         <select
           value={patternId}
           onChange={(e) => setPatternId(e.target.value as PatternId)}
@@ -56,31 +71,27 @@ export default function ResearchForm({ onSubmit, isLoading }: Props) {
             </option>
           ))}
         </select>
-        {selectedPattern && (
-          <p className="mt-1.5 text-xs text-gray-500">{selectedPattern.description}</p>
-        )}
       </div>
 
       {/* 出力形式選択 */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          出力形式
-        </label>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">出力形式</label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {EXPORT_FORMATS.map((fmt) => (
-            <button
-              key={fmt.id}
-              type="button"
-              onClick={() => setExportFormat(fmt.id)}
-              className={`px-3 py-2 rounded-lg text-sm font-medium border transition ${
-                exportFormat === fmt.id
-                  ? 'bg-indigo-600 text-white border-indigo-600'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-600'
-              }`}
-              disabled={isLoading}
-            >
-              {fmt.label}
-            </button>
+            <Tooltip key={fmt.id} content={FORMAT_DESCRIPTIONS[fmt.id]}>
+              <button
+                type="button"
+                onClick={() => setExportFormat(fmt.id)}
+                className={`w-full px-3 py-2 rounded-lg text-sm font-medium border transition ${
+                  exportFormat === fmt.id
+                    ? 'bg-indigo-600 text-white border-indigo-600'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-600'
+                }`}
+                disabled={isLoading}
+              >
+                {fmt.label}
+              </button>
+            </Tooltip>
           ))}
         </div>
       </div>

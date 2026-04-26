@@ -221,6 +221,7 @@ export default function ResearchApp() {
 
       <ResultsTable
         columns={pattern.columns}
+        columnDescriptions={pattern.columnDescriptions}
         rows={state.rows}
         isStreaming={state.isStreaming}
         streamText={state.streamText}

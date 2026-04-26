@@ -1,23 +1,24 @@
 import { google } from 'googleapis'
 
 function getAuth() {
-  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL
-  const key = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n')
+  const clientId = process.env.GOOGLE_CLIENT_ID
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET
+  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN
 
-  if (!email || !key) {
-    throw new Error('Google認証情報が未設定です。.env.local に GOOGLE_SERVICE_ACCOUNT_EMAIL と GOOGLE_PRIVATE_KEY を設定してください。')
+  if (!clientId || !clientSecret || !refreshToken) {
+    throw new Error(
+      'Google認証情報が未設定です。.env.local に GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / GOOGLE_REFRESH_TOKEN を設定してください。'
+    )
   }
-  if (email.includes('your-service-account') || key.includes('...\n---')) {
-    throw new Error('Google認証情報がまだプレースホルダーのままです。Google Cloud ConsoleでサービスアカウントのJSONキーを取得して .env.local に設定してください。')
+  if (clientId.includes('your-client') || refreshToken.includes('your-refresh')) {
+    throw new Error(
+      'Google認証情報がまだプレースホルダーのままです。セットアップ手順を完了してください。'
+    )
   }
 
-  return new google.auth.GoogleAuth({
-    credentials: { client_email: email, private_key: key },
-    scopes: [
-      'https://www.googleapis.com/auth/spreadsheets',
-      'https://www.googleapis.com/auth/drive',
-    ],
-  })
+  const oAuth2Client = new google.auth.OAuth2(clientId, clientSecret, 'http://localhost')
+  oAuth2Client.setCredentials({ refresh_token: refreshToken })
+  return oAuth2Client
 }
 
 export async function createAndWriteSheet(

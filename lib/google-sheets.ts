@@ -5,7 +5,10 @@ function getAuth() {
   const key = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n')
 
   if (!email || !key) {
-    throw new Error('GOOGLE_SERVICE_ACCOUNT_EMAIL または GOOGLE_PRIVATE_KEY が .env.local に未設定です')
+    throw new Error('Google認証情報が未設定です。.env.local に GOOGLE_SERVICE_ACCOUNT_EMAIL と GOOGLE_PRIVATE_KEY を設定してください。')
+  }
+  if (email.includes('your-service-account') || key.includes('...\n---')) {
+    throw new Error('Google認証情報がまだプレースホルダーのままです。Google Cloud ConsoleでサービスアカウントのJSONキーを取得して .env.local に設定してください。')
   }
 
   return new google.auth.GoogleAuth({
@@ -20,7 +23,8 @@ function getAuth() {
 export async function createAndWriteSheet(
   title: string,
   columns: string[],
-  rows: Record<string, string>[]
+  rows: Record<string, string>[],
+  shareEmail?: string
 ): Promise<string> {
   const auth = getAuth()
   const sheets = google.sheets({ version: 'v4', auth })
@@ -92,8 +96,7 @@ export async function createAndWriteSheet(
     },
   })
 
-  // 共有設定（GOOGLE_SHARE_EMAIL が設定されている場合）
-  const shareEmail = process.env.GOOGLE_SHARE_EMAIL
+  // 共有設定（shareEmail が指定された場合）
   if (shareEmail) {
     await drive.permissions.create({
       fileId: spreadsheetId,

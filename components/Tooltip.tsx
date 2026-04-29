@@ -17,10 +17,18 @@ export default function Tooltip({ content, children, position = 'top' }: Props) 
   useEffect(() => {
     if (!open) return
     const handler = (e: MouseEvent | TouchEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) close()
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        // setTimeout でクローズを遅延: iOS Safari では touchstart 中に
+        // setState → DOM更新が起きると click 合成がキャンセルされるため
+        if (e.type === 'touchstart') {
+          setTimeout(close, 0)
+        } else {
+          close()
+        }
+      }
     }
     document.addEventListener('mousedown', handler)
-    document.addEventListener('touchstart', handler)
+    document.addEventListener('touchstart', handler, { passive: true })
     return () => {
       document.removeEventListener('mousedown', handler)
       document.removeEventListener('touchstart', handler)

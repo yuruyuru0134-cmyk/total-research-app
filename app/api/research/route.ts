@@ -5,6 +5,13 @@ import { RESEARCH_PATTERNS, PatternId } from '@/lib/research-patterns'
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY ?? '')
 
 export async function POST(req: NextRequest) {
+  if (!process.env.GOOGLE_AI_API_KEY) {
+    return new Response(
+      JSON.stringify({ error: 'GOOGLE_AI_API_KEY が設定されていません。.env.local またはVercel環境変数を確認してください。' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    )
+  }
+
   const { keyword, patternId } = await req.json()
 
   if (!keyword || !patternId) {

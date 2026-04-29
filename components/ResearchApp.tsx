@@ -78,6 +78,19 @@ export default function ResearchApp() {
       }
 
       const finalRows = parseJSON(accumulated)
+
+      // ストリーム内エラーオブジェクトを検出して表示する
+      if (finalRows.length === 0 && accumulated.trim()) {
+        try {
+          const parsed = JSON.parse(accumulated.trim())
+          if (parsed && !Array.isArray(parsed) && typeof parsed.error === 'string') {
+            throw new Error(parsed.error)
+          }
+        } catch (e) {
+          if (!(e instanceof SyntaxError)) throw e
+        }
+      }
+
       setState((s) => ({ ...s, rows: finalRows, isLoading: false, isStreaming: false }))
 
       const pattern = RESEARCH_PATTERNS[patternId]
@@ -232,8 +245,17 @@ export default function ResearchApp() {
 
 function parseJSON(text: string): Record<string, string>[] {
   const cleaned = text.trim().replace(/^```json\n?/, '').replace(/\n?```$/, '')
+  // まず全体をパース試行
   try {
     const parsed = JSON.parse(cleaned)
+    if (Array.isArray(parsed)) return parsed
+  } catch {}
+  // 前置きテキストがある場合、最初の '[' から最後の ']' を抽出
+  const start = cleaned.indexOf('[')
+  const end = cleaned.lastIndexOf(']')
+  if (start === -1 || end <= start) return []
+  try {
+    const parsed = JSON.parse(cleaned.slice(start, end + 1))
     return Array.isArray(parsed) ? parsed : []
   } catch {
     return []
@@ -242,14 +264,17 @@ function parseJSON(text: string): Record<string, string>[] {
 
 function tryParsePartialJSON(text: string): Record<string, string>[] {
   const cleaned = text.trim().replace(/^```json\n?/, '').replace(/\n?```$/, '')
-  if (!cleaned.startsWith('[')) return []
+  // 前置きテキストを無視して '[' の位置から解析
+  const arrayStart = cleaned.indexOf('[')
+  if (arrayStart === -1) return []
+  const content = cleaned.slice(arrayStart)
 
   const results: Record<string, string>[] = []
   let depth = 0
   let start = -1
 
-  for (let i = 0; i < cleaned.length; i++) {
-    const ch = cleaned[i]
+  for (let i = 0; i < content.length; i++) {
+    const ch = content[i]
     if (ch === '{') {
       if (depth === 0) start = i
       depth++
@@ -257,7 +282,7 @@ function tryParsePartialJSON(text: string): Record<string, string>[] {
       depth--
       if (depth === 0 && start !== -1) {
         try {
-          results.push(JSON.parse(cleaned.slice(start, i + 1)))
+          results.push(JSON.parse(content.slice(start, i + 1)))
         } catch { /* skip */ }
         start = -1
       }

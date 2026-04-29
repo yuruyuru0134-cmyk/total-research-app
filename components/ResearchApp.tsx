@@ -134,7 +134,6 @@ export default function ResearchApp() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? '書き込みに失敗しました')
       setSheets({ loading: false, result: { url: data.url, title: data.title }, error: null })
-      window.open(data.url, '_blank')
     } catch (err) {
       setSheets({ loading: false, result: null, error: err instanceof Error ? err.message : '不明なエラー' })
     }
@@ -219,9 +218,15 @@ export default function ResearchApp() {
                 href={sheets.result.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-1.5 text-sm bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition flex items-center gap-1 whitespace-nowrap"
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition shadow-sm"
               >
-                ✓ シートを開く →
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                </svg>
+                <span className="flex-1 truncate">✓ スプレッドシートが作成されました — クリックして開く</span>
+                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
               </a>
             )}
 
